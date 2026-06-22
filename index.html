@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ASCII 8-bit Circle Encoder</title>
+
+    <style>
+        body {
+            background: #0e0f13;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        input {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+            margin: 15px;
+        }
+
+        canvas {
+            background: #121318;
+            margin: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>ASCII → 8-bit Circular Encoder (3 Modes)</h2>
+
+    <input id="txt" maxlength="100" placeholder="Max 100 characters..." />
+
+    <button onclick="exportPNG()">Export PNG</button>
+
+    <canvas id="cv" width="1200" height="900"></canvas>
+
+    <script>
+        const input = document.getElementById("txt");
+        const canvas = document.getElementById("cv");
+        const ctx = canvas.getContext("2d");
+
+
+
+        input.addEventListener("input", draw);
+
+        const angles = [...Array(8)].map((_, i) => {
+            // start at -90° (12 o'clock) and go clockwise
+            return (-Math.PI / 2) + (i * (Math.PI * 2 / 8));
+        });
+
+        function toBits(ch) {
+            return ch.charCodeAt(0).toString(2).padStart(8, "0");
+        }
+
+        /* ===================== MODES ===================== */
+
+        // function radial(x, y, r, bits) {
+        //     for (let i = 0; i < 8; i++) {
+        //         const a = angles[i];
+        //         const x2 = x + Math.cos(a) * r;
+        //         const y2 = y + Math.sin(a) * r;
+
+        //         ctx.beginPath();
+        //         ctx.moveTo(x, y);
+        //         ctx.lineTo(x2, y2);
+
+        //         ctx.strokeStyle = bits[i] === "1" ? "#00ff88" : "#2a2a2a";
+        //         ctx.lineWidth = bits[i] === "1" ? 3 : 1;
+        //         ctx.stroke();
+        //     }
+        // }
+
+        function radial(x, y, r, bits) {
+
+            const innerCut = 7; // 👈 size of center hole
+
+            for (let i = 0; i < 8; i++) {
+
+                const a = angles[i];
+
+                // start point slightly away from center
+                const x1 = x + Math.cos(a) * innerCut;
+                const y1 = y + Math.sin(a) * innerCut;
+
+                const x2 = x + Math.cos(a) * r;
+                const y2 = y + Math.sin(a) * r;
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+
+                ctx.strokeStyle = bits[i] === "1" ? "#e74c3c" : "#2c3e5010";
+                ctx.lineWidth = bits[i] === "1" ? 3 : 1;
+                ctx.stroke();
+            }
+
+            // 🟢 CENTER MASK (this removes visual connection illusion)
+            ctx.beginPath();
+            ctx.arc(x, y, innerCut, 0, Math.PI * 2);
+
+            ctx.fillStyle = "#121318"; // same as canvas background
+            ctx.fill();
+        }
+
+        // function pie(x, y, r, bits) {
+        //     const step = Math.PI * 2 / 8;
+        //     const innerCut = 25; // 👈 donut hole size (adjust if needed)
+
+        //     for (let i = 0; i < 8; i++) {
+
+        //         const start = i * step;
+        //         const end = (i + 1) * step;
+
+        //         // outer segment
+        //         ctx.beginPath();
+        //         ctx.arc(x, y, r, start, end);
+
+        //         // inner cut (reverse direction)
+        //         ctx.arc(x, y, innerCut, end, start, true);
+
+        //         ctx.closePath();
+
+        //         ctx.fillStyle = bits[i] === "1" ? "#ffcc00" : "#1c1c1c";
+        //         ctx.fill();
+
+        //         // optional separation line (improves visibility)
+        //         ctx.strokeStyle = "#00000055";
+        //         ctx.lineWidth = 1;
+        //         ctx.stroke();
+        //     }
+
+        //     // center mask (ensures clean donut hole)
+        //     ctx.beginPath();
+        //     ctx.arc(x, y, innerCut, 0, Math.PI * 2);
+        //     ctx.fillStyle = "#121318"; // match canvas background
+        //     ctx.fill();
+        // }
+
+        function pie(x, y, r, bits) {
+            const step = Math.PI * 2 / 8;
+
+            const innerCut = 25;
+
+            // 👇 gap size (adjust this for spacing)
+            const gap = 0.1; // radians (~2–3 degrees)
+
+            for (let i = 0; i < 8; i++) {
+
+                const start = i * step + gap;
+                const end = (i + 1) * step - gap;
+
+                // skip if gap becomes too large
+                if (end <= start) continue;
+
+                ctx.beginPath();
+
+                // outer arc
+                ctx.arc(x, y, r, start, end);
+
+                // inner arc (donut hole)
+                ctx.arc(x, y, innerCut, end, start, true);
+
+                ctx.closePath();
+
+                ctx.fillStyle = bits[i] === "1" ? "#ffcc00" : "#1c1c1c01";
+                ctx.fill();
+
+                // optional border for clarity
+                ctx.strokeStyle = "#00000055";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // center hole mask
+            ctx.beginPath();
+            ctx.arc(x, y, innerCut, 0, Math.PI * 2);
+            ctx.fillStyle = "#121318";
+            ctx.fill();
+        }
+
+        function bars(x, y, r, bits) {
+            for (let i = 0; i < 8; i++) {
+                const a = angles[i];
+                const len = bits[i] === "1" ? r : r * 0.4;
+
+                const x2 = x + Math.cos(a) * len;
+                const y2 = y + Math.sin(a) * len;
+
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x2, y2);
+
+                ctx.strokeStyle = "#4da3ff";
+                ctx.lineWidth = bits[i] === "1" ? 4 : 1;
+                ctx.stroke();
+            }
+        }
+
+        /* ===================== DRAW ===================== */
+
+        // function draw() {
+        //     let text = input.value;
+
+        //     if (text.length > 100) text = text.slice(0, 100);
+
+        //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        //     ctx.font = "14px Arial";
+        //     ctx.fillStyle = "#fff";
+
+        //     const startX = 40;
+        //     const spacing = 90;
+
+        //     const rows = [
+        //         { y: 150, mode: 1, label: "RADIAL ON/OFF" },
+        //         { y: 450, mode: 2, label: "PIE SEGMENTS" },
+        //         { y: 750, mode: 3, label: "BAR RING" }
+        //     ];
+
+        //     for (const row of rows) {
+        //         ctx.fillText(row.label, 10, row.y - 60);
+
+        //         for (let i = 0; i < text.length; i++) {
+        //             const bits = toBits(text[i]);
+        //             const x = startX + i * spacing;
+        //             const y = row.y;
+
+        //             ctx.fillText(text[i], x - 10, y - 70);
+
+        //             if (row.mode === 1) radial(x, y, 30, bits);
+        //             if (row.mode === 2) pie(x, y, 30, bits);
+        //             if (row.mode === 3) bars(x, y, 30, bits);
+        //         }
+        //     }
+        // }
+
+        function draw() {
+            let text = input.value;
+
+            if (text.length > 100) text = text.slice(0, 100);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = "14px Arial";
+            ctx.fillStyle = "#fff";
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            const startX = 50;
+            const spacing = 80;
+
+            const rows = [
+                { y: 150, mode: 1, label: "RADIAL ON/OFF" },
+                { y: 450, mode: 2, label: "PIE SEGMENTS" },
+                { y: 750, mode: 3, label: "BAR RING" }
+            ];
+
+            for (const row of rows) {
+
+                // row label (clean placement above row)
+                ctx.fillText(row.label, 80, row.y - 80);
+
+                for (let i = 0; i < text.length; i++) {
+
+                    const bits = toBits(text[i]);
+                    const x = startX + i * spacing;
+                    const y = row.y;
+
+
+                    ctx.fillStyle = "#ffffff30";
+                    ctx.font = "bold 14px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    // character label (NOW FIXED)
+                    ctx.fillText(text[i], x, y - 55);
+
+                    if (row.mode === 1) radial(x, y, 30, bits);
+                    if (row.mode === 2) pie(x, y, 30, bits);
+                    if (row.mode === 3) bars(x, y, 30, bits);
+                }
+            }
+        }
+
+        /* ===================== EXPORT ===================== */
+
+        function exportPNG() {
+            const link = document.createElement("a");
+            link.download = "ascii_circle_encoder.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        }
+
+        draw();
+    </script>
+
+</body>
+
+</html>
