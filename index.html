@@ -25,6 +25,45 @@
             margin: 10px;
             border-radius: 10px;
         }
+
+        .footer {
+    margin-top: 40px;
+    padding: 20px;
+    background: #0b0d10;
+    border-top: 1px solid #2c3e50;
+    color: #8d99a6;
+    font-size: 13px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.footer strong {
+    color: #ffffff;
+}
+
+.download-btn {
+    display: inline-block;
+    margin-left: 15px;
+    padding: 10px 18px;
+    background: #e74c3c;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.download-btn:hover {
+    background: #c0392b;
+}
     </style>
 </head>
 
@@ -35,6 +74,14 @@
     <input id="txt" maxlength="100" placeholder="Max 100 characters..." />
 
     <button onclick="exportPNG()">Export PNG</button>
+
+    <button onclick="exportPNG()">Export PNG</button>
+
+<a href="Predator_Ascii8_bitCircula-Rg.ttf"
+   download
+   class="download-btn">
+   Download Font
+</a>
 
     <canvas id="cv" width="1200" height="900"></canvas>
 
@@ -297,6 +344,25 @@
 
         draw();
     </script>
+
+    <footer class="footer">
+    <div class="footer-content">
+        <div>
+            <strong>ASCII 8-bit Circular Symbol Encoder</strong><br>
+            Convert standard ASCII characters into circular 8-bit symbols.
+        </div>
+
+        <div>
+            Font: <strong>Predator ASCII 8-bit Circular</strong><br>
+            Designed & Developed by <strong>Prasanna</strong>
+        </div>
+
+        <div>
+            Version 1.0<br>
+            © 2026 All Rights Reserved
+        </div>
+    </div>
+</footer>
 
 </body>
 
